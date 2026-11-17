@@ -1,0 +1,88 @@
+.card{
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.main-header {
+    position: relative;
+}
+
+.buscador-navbar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 40%;
+    max-width: 520px;
+    margin: 0;
+}
+
+/* Barra de búsqueda */
+.buscador-navbar {
+    display: flex;
+    align-items: center;
+
+    flex: 1;
+    max-width: 520px;
+    min-width: 0;
+
+    height: 42px;
+    margin: 0 24px;
+    padding: 0 14px;
+
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 14px;
+
+    transition: all 0.2s ease;
+}
+
+/* Campo de texto */
+.buscador-navbar input {
+    flex: 1;
+    min-width: 0;
+
+    border: none;
+    outline: none;
+    background: transparent;
+
+    font-size: 14px;
+    color: #343a40;
+}
+
+/* Texto de ejemplo */
+.buscador-navbar input::placeholder {
+    color: #9ca3af;
+}
+
+/* Botón de búsqueda */
+.buscador-navbar button {
+    border: none;
+    background: transparent;
+
+    color: #6c757d;
+    cursor: pointer;
+
+    padding: 6px;
+    transition: color 0.2s;
+}
+
+/* Efecto al pasar el mouse */
+.buscador-navbar button:hover {
+    color: #007bff;
+}
+
+/* Efecto al seleccionar el buscador */
+.buscador-navbar:focus-within {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.12);
+}
+
+/* Adaptación a móviles */
+@media (max-width: 576px) {
+    .buscador-navbar {
+        margin: 0 10px;
+        height: 38px;
+        padding: 0 10px;
+    }
+}
