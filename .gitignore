@@ -1,7 +1,6 @@
-@"
-oracle-off.bat
-oracle-on.bat
-venv/
 .env
+venv/
 __pycache__/
-"@ | Set-Content .gitignoregit
+uploads/
+salida.txt
+.DS_Store

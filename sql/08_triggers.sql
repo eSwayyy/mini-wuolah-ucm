@@ -1,0 +1,111 @@
+/*
+    TRIGGERS
+    NO EMITEN COMMIT NI ROLLBACK (LO PROHIBE EL MOTOR); ESO LO HACEN LOS PROCEDIMIENTOS
+    LA AUDITORIA SE ESCRIBE EN WU_AUDITORIA A TRAVES DE WU_REGISTRAR_AUDITORIA_P
+*/
+
+-- ======================================================================
+-- USUARIO
+-- ======================================================================
+
+-- NO SE PUEDE ELIMINAR UN USUARIO QUE HAYA PUBLICADO APUNTES
+CREATE OR REPLACE TRIGGER WU_USUARIO_BD_T
+BEFORE DELETE ON WU_USUARIO
+FOR EACH ROW
+DECLARE
+    TOTAL_V NUMBER;
+BEGIN
+    SELECT COUNT(*)
+        INTO TOTAL_V
+        FROM WU_APUNTE
+        WHERE ID_USUARIO = :OLD.ID_USUARIO;
+
+    IF TOTAL_V > 0 THEN
+        RAISE_APPLICATION_ERROR(-20020, 'No se puede eliminar un usuario que tiene apuntes publicados. Bloquee la cuenta.');
+    END IF;
+END WU_USUARIO_BD_T;
+/
+
+-- ======================================================================
+-- APUNTE
+-- ======================================================================
+
+-- UN APUNTE YA MODERADO NO PUEDE VOLVER A PENDIENTE
+CREATE OR REPLACE TRIGGER WU_APUNTE_BU_T
+BEFORE UPDATE ON WU_APUNTE
+FOR EACH ROW
+BEGIN
+    IF :OLD.ESTADO <> 'PENDIENTE' AND :NEW.ESTADO = 'PENDIENTE' THEN
+        RAISE_APPLICATION_ERROR(-20022, 'Un apunte moderado no puede volver al estado PENDIENTE.');
+    END IF;
+END WU_APUNTE_BU_T;
+/
+
+-- AUDITORIA DE CAMBIOS: ESTADO Y DATOS DESCRIPTIVOS DEL APUNTE
+CREATE OR REPLACE TRIGGER WU_APUNTE_AU_T
+AFTER UPDATE ON WU_APUNTE
+FOR EACH ROW
+BEGIN
+    IF :OLD.ESTADO <> :NEW.ESTADO THEN
+        WU_REGISTRAR_AUDITORIA_P(
+            'WU_APUNTE',
+            'CAMBIO_ESTADO',
+            :OLD.ID_APUNTE,
+            CONCAT(CONCAT(:OLD.ESTADO, ' -> '), :NEW.ESTADO)
+        );
+    END IF;
+
+    IF :OLD.TITULO <> :NEW.TITULO
+       OR NVL(:OLD.DESCRIPCION, ' ') <> NVL(:NEW.DESCRIPCION, ' ')
+       OR :OLD.ID_ASIGNATURA <> :NEW.ID_ASIGNATURA
+       OR NVL(:OLD.ID_PROFESOR, 0) <> NVL(:NEW.ID_PROFESOR, 0)
+       OR :OLD.ID_TIPO <> :NEW.ID_TIPO THEN
+        WU_REGISTRAR_AUDITORIA_P(
+            'WU_APUNTE',
+            'UPDATE',
+            :OLD.ID_APUNTE,
+            CONCAT('Titulo anterior: ', :OLD.TITULO)
+        );
+    END IF;
+END WU_APUNTE_AU_T;
+/
+
+-- ======================================================================
+-- DESCARGA Y VALORACION
+-- ======================================================================
+
+-- BITACORA DE DESCARGAS
+CREATE OR REPLACE TRIGGER WU_DESCARGA_AI_T
+AFTER INSERT ON WU_DESCARGA
+FOR EACH ROW
+BEGIN
+    WU_REGISTRAR_AUDITORIA_P(
+        'WU_DESCARGA',
+        'INSERT',
+        :NEW.ID_DESCARGA,
+        CONCAT(CONCAT('Usuario ', :NEW.ID_USUARIO), CONCAT(' descargo el apunte ', :NEW.ID_APUNTE))
+    );
+END WU_DESCARGA_AI_T;
+/
+
+-- EL PUNTUACION VA DE 1 A 5 Y NADIE CALIFICA SU PROPIO APUNTE
+CREATE OR REPLACE TRIGGER WU_VALORACION_BI_T
+BEFORE INSERT ON WU_VALORACION
+FOR EACH ROW
+DECLARE
+    AUTOR_V WU_APUNTE.ID_USUARIO%TYPE;
+BEGIN
+    IF :NEW.PUNTUACION < 1 OR :NEW.PUNTUACION > 5 THEN
+        RAISE_APPLICATION_ERROR(-20023, 'El puntuacion debe estar entre 1 y 5.');
+    END IF;
+
+    SELECT ID_USUARIO
+        INTO AUTOR_V
+        FROM WU_APUNTE
+        WHERE ID_APUNTE = :NEW.ID_APUNTE;
+
+    IF AUTOR_V = :NEW.ID_USUARIO THEN
+        RAISE_APPLICATION_ERROR(-20021, 'No puede valorar su propio apunte.');
+    END IF;
+END WU_VALORACION_BI_T;
+/
