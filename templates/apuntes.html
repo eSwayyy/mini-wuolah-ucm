@@ -1,4 +1,240 @@
 {% extends "base.html" %}
+
+{% block titulo %}Explorar apuntes - Apuntes UCM{% endblock %}
+
 {% block contenido %}
-<h1>Apuntes</h1>
+<style>
+  /* Estos estilos pueden moverse a static/css/estilos.css más adelante. */
+
+</style>
+
+<div class="container-fluid px-md-4 py-3">
+  <div class="mb-4">
+    <h1 class="h3 font-weight-bold">Explorar apuntes</h1>
+    <p class="text-muted mb-0">Busca material por carrera, asignatura o título.</p>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="card shadow-sm mb-4" style="border-radius: 14px;">
+    <div class="card-body">
+      <form method="GET" action="{{ url_for('apuntes') }}">
+        <div class="row">
+          <div class="col-md-4 mb-3 mb-md-0">
+            <label for="filtroCarrera">Carrera</label>
+            <select id="filtroCarrera" name="carrera" class="form-control" onchange="this.form.submit()">
+              <option value="">Todas las carreras</option>
+              {% for carrera in carreras %}
+                <option value="{{ carrera.id_carrera }}" {% if carrera.id_carrera == carrera_seleccionada %}selected{% endif %}>
+                  {{ carrera.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4 mb-3 mb-md-0">
+            <label for="filtroAsignatura">Asignatura</label>
+            <select id="filtroAsignatura" name="asignatura" class="form-control"
+                    onchange="this.form.submit()" {% if not carrera_seleccionada %}disabled{% endif %}>
+              <option value="">Todas las asignaturas</option>
+              {% for asignatura in asignaturas %}
+                <option value="{{ asignatura.id_asignatura }}" {% if asignatura.id_asignatura == asignatura_seleccionada %}selected{% endif %}>
+                  {{ asignatura.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="filtroTexto">Buscar</label>
+            <input id="filtroTexto" type="search" name="q" class="form-control"
+                   placeholder="Título o descripción..." value="{{ busqueda }}">
+          </div>
+        </div>
+        <div class="mt-3 d-flex flex-wrap" style="gap: 10px;">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-search mr-1"></i> Buscar
+          </button>
+          <a href="{{ url_for('apuntes') }}" class="btn btn-outline-secondary">Limpiar filtros</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TARJETAS -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h5 mb-0">Resultados ({{ apuntes|length }})</h2>
+  </div>
+
+  <div class="row">
+    {% for apunte in apuntes %}
+      <div class="col-sm-6 col-lg-4 mb-4">
+        <div class="card h-100 tarjeta-apunte" role="button" tabindex="0"
+             aria-label="Abrir vista previa de {{ apunte.titulo }}"
+             data-titulo="{{ apunte.titulo }}"
+             data-descripcion="{{ apunte.descripcion }}"
+             data-tipo="{{ apunte.tipo }}"
+             data-fecha="{{ apunte.fecha_subida }}"
+             data-autor="{{ apunte.autor }}"
+             data-perfil="{{ url_for('perfil_usuario', usuario_id=apunte.id_usuario) }}"
+             data-carrera="{{ apunte.carrera }}"
+             data-carrera-url="{{ url_for('apuntes', carrera=apunte.id_carrera) }}"
+             data-ramo="{{ apunte.asignatura }}"
+             data-ramo-url="{{ url_for('apuntes', carrera=apunte.id_carrera, asignatura=apunte.id_asignatura) }}"
+             data-pdf="{{ url_for('ver_pdf', apunte_id=apunte.id_apunte) if apunte.archivo_disponible else '' }}"
+             data-descarga="{{ url_for('descargar_pdf', apunte_id=apunte.id_apunte) if apunte.archivo_disponible else '' }}"
+             data-archivo="{{ apunte.archivo }}"
+             data-likes="{{ apunte.likes }}"
+             data-comentarios="{{ apunte.comentarios }}"
+             data-descargas="{{ apunte.descargas }}">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between mb-3">
+              <i class="far fa-file-pdf fa-2x text-danger"></i>
+              <span class="tipo-apunte">{{ apunte.tipo }}</span>
+            </div>
+            <h3 class="card-title h5 mb-2">{{ apunte.titulo }}</h3>
+            <p class="card-text text-muted small mb-2">{{ apunte.asignatura }}</p>
+            <p class="card-text small">{{ apunte.descripcion }}</p>
+          </div>
+          <div class="card-footer bg-white d-flex justify-content-between text-muted small">
+            <span><i class="fas fa-download mr-1"></i>{{ apunte.descargas }} descargas</span>
+            <span><i class="far fa-thumbs-up mr-1"></i>{{ apunte.likes }}</span>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="col-12">
+        <div class="alert alert-info">No se encontraron apuntes con esos filtros.</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- UN SOLO MODAL PARA TODAS LAS TARJETAS -->
+<div class="modal fade" id="modalApunte" tabindex="-1" role="dialog"
+     aria-labelledby="detalleTitulo" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content modal-apunte">
+      <button type="button" class="cerrar-apunte" data-dismiss="modal" aria-label="Cerrar vista previa">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <div class="modal-body">
+        <div class="row no-gutters">
+          <!-- PDF -->
+          <div class="col-lg-7 visor-pdf">
+            <iframe id="detallePdf" src="about:blank" title="Vista previa del PDF"></iframe>
+            <div id="detalleSinPdf" class="visor-vacio" hidden>
+              <i class="far fa-file-pdf"></i>
+              <strong>PDF no disponible todavía</strong>
+              <p class="mt-2 mb-0">Para probar la vista previa, agrega el archivo <code id="detalleNombreArchivo"></code> a la carpeta <code>uploads/</code>.</p>
+            </div>
+          </div>
+
+          <!-- INFORMACIÓN -->
+          <div class="col-lg-5 info-apunte d-flex flex-column">
+            <h3 id="detalleTitulo"></h3>
+            <p class="text-muted small mb-3">
+              <span id="detalleTipo"></span> · <span id="detalleFecha"></span>
+            </p>
+            <p id="detalleDescripcion" class="mb-3"></p>
+            <hr class="w-100">
+            <div class="mb-3">
+              <div class="text-muted small mb-1">Carrera</div>
+              <a id="detalleCarrera" href="#"></a>
+            </div>
+            <div class="mb-3">
+              <div class="text-muted small mb-1">Asignatura</div>
+              <a id="detalleRamo" href="#"></a>
+            </div>
+            <a id="detalleDescargar" class="btn btn-primary btn-block mt-3" href="#">
+              <i class="fas fa-download mr-2"></i>Descargar PDF
+            </a>
+            <small id="detalleAviso" class="text-muted mt-2" hidden>
+              La descarga se habilitará cuando agregues el PDF de prueba.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- ESTADÍSTICAS A LA IZQUIERDA Y AUTOR A LA DERECHA -->
+      <div class="modal-footer">
+        <div class="d-flex flex-wrap" style="gap: 22px;">
+          <span class="estadistica"><i class="far fa-thumbs-up"></i><span id="detalleLikes"></span></span>
+          <span class="estadistica"><i class="far fa-comment"></i><span id="detalleComentarios"></span></span>
+          <span class="estadistica"><i class="fas fa-download"></i><span id="detalleDescargas"></span></span>
+        </div>
+        <a id="detalleAutor" href="#" class="font-weight-bold"></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // DOMContentLoaded se ejecuta después de cargar los scripts de base.html.
+  document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modalApunte');
+    const iframe = document.getElementById('detallePdf');
+    const sinPdf = document.getElementById('detalleSinPdf');
+    const descargar = document.getElementById('detalleDescargar');
+
+    function ponerTexto(id, valor) {
+      document.getElementById(id).textContent = valor || '';
+    }
+
+    function ponerEnlace(id, texto, url) {
+      const enlace = document.getElementById(id);
+      enlace.textContent = texto || '';
+      enlace.href = url || '#';
+    }
+
+    function abrirApunte(tarjeta) {
+      const d = tarjeta.dataset;
+      ponerTexto('detalleTitulo', d.titulo);
+      ponerTexto('detalleTipo', d.tipo);
+      ponerTexto('detalleFecha', d.fecha);
+      ponerTexto('detalleDescripcion', d.descripcion);
+      ponerTexto('detalleLikes', d.likes);
+      ponerTexto('detalleComentarios', d.comentarios);
+      ponerTexto('detalleDescargas', d.descargas);
+      ponerTexto('detalleNombreArchivo', d.archivo);
+
+      ponerEnlace('detalleAutor', '@' + d.autor, d.perfil);
+      ponerEnlace('detalleCarrera', d.carrera, d.carreraUrl);
+      ponerEnlace('detalleRamo', d.ramo, d.ramoUrl);
+
+      const disponible = Boolean(d.pdf);
+      iframe.hidden = !disponible;
+      sinPdf.hidden = disponible;
+      iframe.src = disponible ? d.pdf : 'about:blank';
+
+      descargar.href = disponible ? d.descarga : '#';
+      descargar.classList.toggle('disabled', !disponible);
+      descargar.setAttribute('aria-disabled', String(!disponible));
+      descargar.tabIndex = disponible ? 0 : -1;
+      document.getElementById('detalleAviso').hidden = disponible;
+
+      // Bootstrap 4 / AdminLTE 3 utilizan jQuery para sus modales.
+      window.jQuery(modal).modal('show');
+    }
+
+    document.querySelectorAll('.tarjeta-apunte').forEach(function (tarjeta) {
+      tarjeta.addEventListener('click', function () { abrirApunte(tarjeta); });
+      tarjeta.addEventListener('keydown', function (evento) {
+        if (evento.key === 'Enter' || evento.key === ' ') {
+          evento.preventDefault();
+          abrirApunte(tarjeta);
+        }
+      });
+    });
+
+    // No dejar el PDF cargado cuando se cierra la ventana.
+    window.jQuery(modal).on('hidden.bs.modal', function () {
+      iframe.src = 'about:blank';
+    });
+
+    descargar.addEventListener('click', function (evento) {
+      if (descargar.classList.contains('disabled')) evento.preventDefault();
+    });
+  });
+</script>
 {% endblock %}
