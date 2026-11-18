@@ -1,0 +1,80 @@
+  .tarjeta-apunte {
+    cursor: pointer;
+    border-radius: 14px;
+    border: 1px solid #e8ebf0;
+    transition: transform .2s ease, box-shadow .2s ease;
+    outline-offset: 3px;
+  }
+  .tarjeta-apunte:hover, .tarjeta-apunte:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 9px 24px rgba(0, 0, 0, .09);
+  }
+  .tarjeta-apunte .card-title { float: none; font-weight: 600; }
+  .tarjeta-apunte .tipo-apunte {
+    display: inline-block;
+    background: #edf4ff;
+    color: #1767ba;
+    border-radius: 30px;
+    padding: 3px 10px;
+    font-size: .78rem;
+  }
+  .modal-apunte {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .modal-apunte .modal-body { padding: 0; }
+  .visor-pdf {
+    background: #edf0f4;
+    min-height: 440px;
+  }
+  .visor-pdf iframe {
+    display: block;
+    width: 100%;
+    height: 70vh;
+    min-height: 440px;
+    border: 0;
+  }
+  .visor-vacio {
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    color: #667085;
+  }
+  .visor-pdf iframe[hidden], .visor-vacio[hidden] { display: none !important; }
+  .visor-vacio i { font-size: 3rem; margin-bottom: 16px; }
+  .info-apunte { padding: 32px 26px; }
+  .info-apunte h3 { font-size: 1.35rem; font-weight: 700; padding-right: 15px; }
+  .info-apunte a { overflow-wrap: anywhere; }
+  .cerrar-apunte {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .14);
+    color: #333;
+    cursor: pointer;
+  }
+  .estadistica { display: inline-flex; align-items: center; gap: 7px; color: #667085; }
+  .modal-apunte .modal-footer { justify-content: space-between; gap: 12px; }
+  @media (min-width: 1200px) {
+    #modalApunte .modal-xl { max-width: 1180px; }
+  }
+  @media (max-width: 991.98px) {
+    .visor-pdf, .visor-vacio { min-height: 260px; }
+    .visor-pdf iframe { height: 43vh; min-height: 260px; }
+    .info-apunte { padding: 24px; }
+    .modal-apunte .modal-footer { justify-content: flex-start; }
+  }
