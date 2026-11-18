@@ -34,7 +34,7 @@
                     <i class="far fa-file-lines text-primary mb-3"></i>
 
                     <h5 class="card-title">
-                        {{ apunte.titulo }}
+                        <a href="{{ url_for('detalle_apunte', apunte_id=apunte.id_apunte) }}">{{ apunte.titulo }}</a>
                     </h5>
 
                     <p class="card-text text-muted">

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block titulo %}Reportes - Administración{% endblock %}
+{% block contenido %}
+<div class="container-fluid px-md-4 py-3">
+  <a href="{{ url_for('admin') }}" class="small">&larr; Administración</a>
+  <h1 class="h3 font-weight-bold mb-3">Reportes</h1>
+
+  <form method="GET" class="card shadow-sm mb-4">
+    <div class="card-body row align-items-end">
+      <div class="col-md-2 form-group mb-md-0">
+        <label for="anio">Año</label>
+        <input id="anio" type="number" name="anio" value="{{ anio }}" class="form-control" min="2000" max="2100">
+      </div>
+      <div class="col-md-4 form-group mb-md-0">
+        <label for="asignatura">Asignatura (reporte 1)</label>
+        <select id="asignatura" name="asignatura" class="form-control">
+          <option value="">Todas</option>
+          {% for a in asignaturas %}<option value="{{ a.id_asignatura }}" {% if a.id_asignatura == asignatura %}selected{% endif %}>{{ a.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4 form-group mb-md-0">
+        <label for="carrera">Carrera (reporte 3)</label>
+        <select id="carrera" name="carrera" class="form-control">
+          <option value="">Todas</option>
+          {% for c in carreras %}<option value="{{ c.id_carrera }}" {% if c.id_carrera == carrera %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2"><button class="btn btn-primary btn-block" type="submit">Actualizar</button></div>
+    </div>
+  </form>
+
+  <h2 class="h5">1. Apuntes más descargados ({{ anio }})</h2>
+  <div class="row mb-4">
+    <div class="col-lg-7 mb-3"><div class="card shadow-sm"><div class="card-body"><canvas id="graficoTop" height="150"></canvas></div></div></div>
+    <div class="col-lg-5 mb-3"><div class="card shadow-sm"><div class="card-body"><canvas id="graficoCarreras" height="200"></canvas></div></div></div>
+  </div>
+
+  <h2 class="h5">2. Actividad mensual ({{ anio }})</h2>
+  <div class="card shadow-sm mb-4"><div class="card-body"><canvas id="graficoMeses" height="90"></canvas></div></div>
+
+  <h2 class="h5">3. Cobertura de material por asignatura</h2>
+  <div class="row">
+    <div class="col-lg-7 mb-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <h3 class="h6">Con apuntes activos</h3>
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Carrera</th><th>Asignatura</th><th class="text-right">Apuntes</th><th class="text-right">Descargas</th></tr></thead>
+          {% for f in con_material %}
+          <tr><td>{{ f.carrera }}</td><td>{{ f.codigo }} {{ f.asignatura }}</td><td class="text-right">{{ f.total_apuntes }}</td><td class="text-right">{{ f.total_descargas }}</td></tr>
+          {% else %}<tr><td colspan="4" class="text-muted">Sin datos.</td></tr>{% endfor %}
+        </table>
+      </div></div>
+    </div>
+    <div class="col-lg-5 mb-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <h3 class="h6">Sin ningún apunte activo</h3>
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Carrera</th><th>Asignatura</th></tr></thead>
+          {% for f in sin_material %}<tr><td>{{ f.carrera }}</td><td>{{ f.codigo }} {{ f.asignatura }}</td></tr>
+          {% else %}<tr><td colspan="2" class="text-muted">Todas las asignaturas tienen material.</td></tr>{% endfor %}
+        </table>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  const topApuntes = {{ top|tojson }};
+  const porCarrera = {{ por_carrera|tojson }};
+  new Chart(document.getElementById('graficoTop'), {
+    type: 'bar',
+    data: { labels: topApuntes.map(f => f.titulo), datasets: [{ label: 'Descargas', data: topApuntes.map(f => f.total_descargas), backgroundColor: '#263F86' }] },
+    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+  });
+  new Chart(document.getElementById('graficoCarreras'), {
+    type: 'bar',
+    data: { labels: porCarrera.map(f => f.carrera), datasets: [{ label: 'Descargas por carrera', data: porCarrera.map(f => f.total_descargas), backgroundColor: '#00ADEE' }] },
+    options: { plugins: { legend: { display: false } } }
+  });
+  new Chart(document.getElementById('graficoMeses'), {
+    type: 'line',
+    data: { labels: {{ meses|tojson }}, datasets: [
+      { label: 'Descargas', data: {{ serie_descargas|tojson }}, borderColor: '#263F86', tension: 0.2 },
+      { label: 'Apuntes subidos', data: {{ serie_apuntes|tojson }}, borderColor: '#00ADEE', tension: 0.2 } ] }
+  });
+</script>
+{% endblock %}

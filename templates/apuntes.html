@@ -34,7 +34,7 @@
           <div class="col-md-4 mb-3 mb-md-0">
             <label for="filtroAsignatura">Asignatura</label>
             <select id="filtroAsignatura" name="asignatura" class="form-control"
-                    onchange="this.form.submit()" {% if not carrera_seleccionada %}disabled{% endif %}>
+                    onchange="this.form.submit()">
               <option value="">Todas las asignaturas</option>
               {% for asignatura in asignaturas %}
                 <option value="{{ asignatura.id_asignatura }}" {% if asignatura.id_asignatura == asignatura_seleccionada %}selected{% endif %}>
@@ -80,6 +80,7 @@
              data-carrera-url="{{ url_for('apuntes', carrera=apunte.id_carrera) }}"
              data-ramo="{{ apunte.asignatura }}"
              data-ramo-url="{{ url_for('apuntes', carrera=apunte.id_carrera, asignatura=apunte.id_asignatura) }}"
+             data-detalle="{{ url_for('detalle_apunte', apunte_id=apunte.id_apunte) }}"
              data-pdf="{{ url_for('ver_pdf', apunte_id=apunte.id_apunte) if apunte.archivo_disponible else '' }}"
              data-descarga="{{ url_for('descargar_pdf', apunte_id=apunte.id_apunte) if apunte.archivo_disponible else '' }}"
              data-archivo="{{ apunte.archivo }}"
@@ -126,7 +127,7 @@
             <div id="detalleSinPdf" class="visor-vacio" hidden>
               <i class="far fa-file-pdf"></i>
               <strong>PDF no disponible todavía</strong>
-              <p class="mt-2 mb-0">Para probar la vista previa, agrega el archivo <code id="detalleNombreArchivo"></code> a la carpeta <code>uploads/</code>.</p>
+              <p class="mt-2 mb-0">No se encontró el archivo <code id="detalleNombreArchivo"></code> en el servidor.</p>
             </div>
           </div>
 
@@ -146,11 +147,14 @@
               <div class="text-muted small mb-1">Asignatura</div>
               <a id="detalleRamo" href="#"></a>
             </div>
-            <a id="detalleDescargar" class="btn btn-primary btn-block mt-3" href="#">
+            <a id="detalleVer" class="btn btn-outline-primary btn-block mt-3" href="#">
+              <i class="fas fa-star mr-2"></i>Ver detalle, valorar y comentar
+            </a>
+            <a id="detalleDescargar" class="btn btn-primary btn-block mt-2" href="#">
               <i class="fas fa-download mr-2"></i>Descargar PDF
             </a>
             <small id="detalleAviso" class="text-muted mt-2" hidden>
-              La descarga se habilitará cuando agregues el PDF de prueba.
+              El archivo de este apunte no está disponible en el servidor.
             </small>
           </div>
         </div>
@@ -201,6 +205,7 @@
       ponerEnlace('detalleAutor', '@' + d.autor, d.perfil);
       ponerEnlace('detalleCarrera', d.carrera, d.carreraUrl);
       ponerEnlace('detalleRamo', d.ramo, d.ramoUrl);
+      document.getElementById('detalleVer').href = d.detalle;
 
       const disponible = Boolean(d.pdf);
       iframe.hidden = !disponible;
