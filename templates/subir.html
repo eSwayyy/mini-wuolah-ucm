@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Subir apunte - Apuntes UCM{% endblock %}
+{% block contenido %}
+<div class="container" style="max-width: 720px;">
+  <h1 class="h3 font-weight-bold mb-3">Subir apunte</h1>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="titulo">Título</label>
+          <input id="titulo" type="text" name="titulo" class="form-control" maxlength="150" required>
+        </div>
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" name="descripcion" class="form-control" rows="3" maxlength="1000"></textarea>
+        </div>
+        <div class="row">
+          <div class="col-md-4 form-group">
+            <label for="asignatura">Asignatura</label>
+            <select id="asignatura" name="asignatura" class="form-control" required>
+              {% for a in asignaturas %}<option value="{{ a.id_asignatura }}">{{ a.nombre }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4 form-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo" class="form-control" required>
+              {% for t in tipos %}<option value="{{ t.id_tipo }}">{{ t.nombre }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4 form-group">
+            <label for="profesor">Profesor (opcional)</label>
+            <select id="profesor" name="profesor" class="form-control">
+              <option value="">(ninguno)</option>
+              {% for p in profesores %}<option value="{{ p.id_profesor }}">{{ p.apellido }}, {{ p.nombre }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          {% for i in (1, 2, 3) %}
+          <div class="col-md-4 form-group">
+            <label for="etiqueta{{ i }}">Etiqueta {{ i }} (opcional)</label>
+            <select id="etiqueta{{ i }}" name="etiqueta{{ i }}" class="form-control">
+              <option value="">(ninguna)</option>
+              {% for e in etiquetas %}<option value="{{ e.id_etiqueta }}">{{ e.nombre }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="form-group">
+          <label for="archivo">Archivo PDF (máximo 20 MB)</label>
+          <input id="archivo" type="file" name="archivo" class="form-control-file" accept="application/pdf" required>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-upload mr-1"></i>Enviar para revisión</button>
+        <small class="text-muted ml-2">Un administrador debe aprobarlo antes de que sea público.</small>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

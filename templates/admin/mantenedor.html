@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block titulo %}{{ m.titulo }} - Administración{% endblock %}
+{% block contenido %}
+<div class="container-fluid px-md-4 py-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <a href="{{ url_for('admin') }}" class="small">&larr; Administración</a>
+      <h1 class="h3 font-weight-bold mb-0">{{ m.titulo }}</h1>
+    </div>
+    <button type="button" class="btn btn-primary" onclick="abrirFormulario('I', null)">
+      <i class="fas fa-plus mr-1"></i>Nuevo
+    </button>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            {% for _, etiqueta in m.columnas %}<th>{{ etiqueta }}</th>{% endfor %}
+            <th style="width: 170px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in filas %}
+          <tr>
+            {% for col, _ in m.columnas %}<td>{{ '' if fila[col] is none else fila[col] }}</td>{% endfor %}
+            <td class="text-right">
+              <button type="button" class="btn btn-sm btn-outline-primary"
+                      onclick='abrirFormulario("U", {{ fila._edicion|tojson }})'>Editar</button>
+              <form method="POST" class="d-inline"
+                    onsubmit="return confirm('¿Eliminar este registro?');">
+                <input type="hidden" name="opcion" value="D">
+                {% for c in m.claves %}<input type="hidden" name="{{ c }}" value="{{ fila._edicion[c] }}">{% endfor %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="{{ m.columnas|length + 1 }}" class="text-muted">No hay registros.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULARIO DE CREAR / EDITAR (uno solo para toda la tabla) -->
+<div class="modal fade" id="modalFormulario" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form method="POST" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tituloFormulario"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span>&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="opcion" id="opcionFormulario">
+
+        {% if m.compuesta %}
+          {% for nombre, etiqueta, _ in m.claves_select %}
+          <div class="form-group">
+            <label for="f_{{ nombre }}">{{ etiqueta }}</label>
+            <select id="f_{{ nombre }}" name="{{ nombre }}" class="form-control clave-compuesta">
+              {% for valor, texto in selects[nombre] %}<option value="{{ valor }}">{{ texto }}</option>{% endfor %}
+            </select>
+          </div>
+          {% endfor %}
+        {% else %}
+          {% for c in m.claves %}<input type="hidden" name="{{ c }}" id="f_{{ c }}">{% endfor %}
+        {% endif %}
+
+        {% for nombre, etiqueta, tipo, _ in m.campos %}
+        <div class="form-group">
+          <label for="f_{{ nombre }}">{{ etiqueta }}</label>
+          {% if tipo == 'select' %}
+            <select id="f_{{ nombre }}" name="{{ nombre }}" class="form-control">
+              {% for valor, texto in selects[nombre] %}<option value="{{ valor }}">{{ texto }}</option>{% endfor %}
+            </select>
+          {% elif tipo == 'area' %}
+            <textarea id="f_{{ nombre }}" name="{{ nombre }}" class="form-control" rows="3"></textarea>
+          {% elif tipo == 'password' %}
+            <input id="f_{{ nombre }}" name="{{ nombre }}" type="password" class="form-control" autocomplete="new-password">
+          {% elif tipo == 'numero' %}
+            <input id="f_{{ nombre }}" name="{{ nombre }}" type="number" class="form-control">
+          {% else %}
+            <input id="f_{{ nombre }}" name="{{ nombre }}" type="text" class="form-control">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const NOMBRES = {{ (m.claves + m.campos|map(attribute=0)|list)|tojson }};
+  const COMPUESTA = {{ 'true' if m.compuesta else 'false' }};
+
+  function abrirFormulario(opcion, datos) {
+    document.querySelectorAll('.clave-hidden').forEach(function (h) { h.remove(); });
+    document.getElementById('opcionFormulario').value = opcion;
+    document.getElementById('tituloFormulario').textContent = opcion === 'I' ? 'Nuevo registro' : 'Editar registro';
+    NOMBRES.forEach(function (nombre) {
+      const campo = document.getElementById('f_' + nombre);
+      if (campo) campo.value = datos ? (datos[nombre] || '') : '';
+      if (campo && campo.tagName === 'SELECT' && campo.selectedIndex < 0) campo.selectedIndex = 0;
+    });
+    // En una clave compuesta la clave no se puede cambiar al editar.
+    document.querySelectorAll('.clave-compuesta').forEach(function (c) { c.disabled = (opcion === 'U'); });
+    if (COMPUESTA && opcion === 'U') {
+      // Los campos deshabilitados no se envian: se agregan como ocultos.
+      document.querySelectorAll('.clave-compuesta').forEach(function (c) {
+        const h = document.createElement('input');
+        h.type = 'hidden'; h.name = c.name; h.value = c.value; h.className = 'clave-hidden';
+        c.form.appendChild(h);
+      });
+    }
+    window.jQuery('#modalFormulario').modal('show');
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Administración - Apuntes UCM{% endblock %}
+{% block contenido %}
+<div class="container py-3">
+  <h1 class="h3 font-weight-bold mb-3">Administración</h1>
+
+  <h2 class="h5">Gestión</h2>
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <a class="btn btn-warning btn-block" href="{{ url_for('moderacion') }}"><i class="fas fa-check-double mr-1"></i>Moderar apuntes pendientes</a>
+    </div>
+    <div class="col-md-4 mb-3">
+      <a class="btn btn-info btn-block" href="{{ url_for('reportes') }}"><i class="fas fa-chart-column mr-1"></i>Reportes</a>
+    </div>
+  </div>
+
+  <h2 class="h5">Mantenedores</h2>
+  <div class="row">
+    {% for clave, m in mantenedores.items() %}
+    <div class="col-md-4 mb-3">
+      <a class="btn btn-outline-primary btn-block text-left" href="{{ url_for('mantenedor', clave=clave) }}">
+        <i class="fas {{ m.icono }} mr-2"></i>{{ m.titulo }}</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

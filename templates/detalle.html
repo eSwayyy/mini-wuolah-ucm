@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block titulo %}{{ apunte.titulo }} - Apuntes UCM{% endblock %}
+{% block contenido %}
+<div class="container-fluid px-md-4 py-3">
+  <div class="row">
+    <div class="col-lg-7 mb-3">
+      <div class="card shadow-sm" style="height: 75vh;">
+        {% if apunte.archivo_disponible %}
+          <iframe src="{{ url_for('ver_pdf', apunte_id=apunte.id_apunte) }}" title="Vista previa del PDF"
+                  style="width:100%; height:100%; border:0;"></iframe>
+        {% else %}
+          <div class="p-4 text-center text-muted">El archivo de este apunte no está disponible en el servidor.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h1 class="h4 font-weight-bold">{{ apunte.titulo }}</h1>
+          <p class="text-muted small mb-2">{{ apunte.tipo }} · {{ apunte.fecha_subida }}
+            {% if apunte.estado != 'ACTIVO' %}<span class="badge badge-warning ml-1">{{ apunte.estado }}</span>{% endif %}</p>
+          <p>{{ apunte.descripcion }}</p>
+          <p class="mb-1"><span class="text-muted">Asignatura:</span> {{ codigo }} {{ apunte.asignatura }}</p>
+          <p class="mb-1"><span class="text-muted">Profesor:</span> {{ profesor }}</p>
+          <p class="mb-2"><span class="text-muted">Autor:</span>
+            <a href="{{ url_for('perfil_usuario', usuario_id=apunte.id_usuario) }}">{{ apunte.autor }}</a></p>
+          {% for e in etiquetas %}<span class="badge badge-info mr-1">#{{ e.nombre }}</span>{% endfor %}
+          <hr>
+          <div class="d-flex flex-wrap text-muted" style="gap: 20px;">
+            <span><i class="fas fa-download mr-1"></i>{{ apunte.descargas }} descargas</span>
+            <span><i class="fas fa-star mr-1"></i>{{ apunte.promedio }} ({{ apunte.total_valoraciones }})</span>
+            <span><i class="fas fa-heart mr-1"></i>{{ apunte.likes }}</span>
+            <span><i class="far fa-comment mr-1"></i>{{ apunte.comentarios }}</span>
+          </div>
+          <div class="d-flex flex-wrap mt-3" style="gap: 10px;">
+            {% if apunte.archivo_disponible and apunte.estado == 'ACTIVO' %}
+              <a class="btn btn-primary" href="{{ url_for('descargar_pdf', apunte_id=apunte.id_apunte) }}">
+                <i class="fas fa-download mr-1"></i>Descargar</a>
+            {% endif %}
+            {% if session.usuario and apunte.estado == 'ACTIVO' %}
+              <form method="POST" action="{{ url_for('favorito', apunte_id=apunte.id_apunte) }}" class="m-0">
+                <button class="btn btn-outline-danger" type="submit">
+                  <i class="{{ 'fas' if es_favorito else 'far' }} fa-heart mr-1"></i>
+                  {{ 'Quitar de favoritos' if es_favorito else 'Agregar a favoritos' }}</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if session.usuario and apunte.estado == 'ACTIVO' %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h6">Valorar este apunte</h2>
+          <form method="POST" action="{{ url_for('valorar', apunte_id=apunte.id_apunte) }}" class="form-inline">
+            <select name="puntuacion" class="form-control mr-2" aria-label="Puntuación">
+              {% for n in (5, 4, 3, 2, 1) %}<option value="{{ n }}">{{ n }} {{ '★' * n }}</option>{% endfor %}
+            </select>
+            <button class="btn btn-outline-primary" type="submit">Guardar valoración</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6">Comentarios</h2>
+          {% if session.usuario and apunte.estado == 'ACTIVO' %}
+          <form method="POST" action="{{ url_for('comentar', apunte_id=apunte.id_apunte) }}" class="mb-3">
+            <textarea name="contenido" class="form-control mb-2" rows="2" maxlength="500" required
+                      placeholder="Escribe un comentario..."></textarea>
+            <button class="btn btn-sm btn-primary" type="submit">Comentar</button>
+          </form>
+          {% endif %}
+          {% for c in comentarios %}
+            <div class="mb-2">
+              <strong>{{ c.autor }}</strong>
+              <small class="text-muted">{{ c.fecha_comentario.strftime('%d/%m/%Y') }}</small>
+              <div>{{ c.contenido }}</div>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">Aún no hay comentarios.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Perfil de {{ usuario.nombre }}{% endblock %}
+{% block contenido %}
+<div class="container py-3">
+  <h1 class="h3 font-weight-bold"><i class="far fa-user mr-2"></i>{{ usuario.nombre }}</h1>
+  <p class="text-muted">{{ usuario.carrera }}
+    · Miembro desde {{ usuario.fecha_registro.strftime('%d/%m/%Y') }}
+    · Reputación: <strong>{{ usuario.reputacion }}</strong></p>
+
+  <h2 class="h5 mt-4">Apuntes publicados</h2>
+  <div class="list-group mb-4">
+    {% for a in apuntes %}
+      <a class="list-group-item list-group-item-action d-flex justify-content-between"
+         href="{{ url_for('detalle_apunte', apunte_id=a.id_apunte) }}">
+        <span>{{ a.titulo }} <small class="text-muted">· {{ a.asignatura }}</small>
+          {% if a.estado != 'ACTIVO' %}<span class="badge badge-warning ml-1">{{ a.estado }}</span>{% endif %}</span>
+        <small class="text-muted">{{ a.descargas }} descargas · ★ {{ a.promedio }}</small>
+      </a>
+    {% else %}
+      <p class="text-muted">Todavía no ha publicado apuntes.</p>
+    {% endfor %}
+  </div>
+
+  {% if es_propio %}
+  <h2 class="h5">Mis favoritos</h2>
+  <div class="list-group">
+    {% for a in favoritos %}
+      <a class="list-group-item list-group-item-action" href="{{ url_for('detalle_apunte', apunte_id=a.id_apunte) }}">
+        {{ a.titulo }} <small class="text-muted">· {{ a.asignatura }}</small></a>
+    {% else %}
+      <p class="text-muted">Aún no tienes favoritos.</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
