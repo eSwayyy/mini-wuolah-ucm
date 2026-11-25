@@ -5,3 +5,5 @@ uploads/*
 !uploads/seed/
 salida.txt
 .DS_Store
+oracle-off.bat
+oracle-on.bat
