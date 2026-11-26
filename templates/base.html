@@ -17,91 +17,99 @@
 <body class="hold-transition layout-top-nav">
 <div class="wrapper">
 
-  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+  <nav class="main-header navbar navbar-expand-lg navbar-white navbar-light">
 
-    <ul class="navbar-nav">
+    <!-- Logo de inicio -->
+    <a class="navbar-brand logo-link"
+       href="{{ url_for('inicio') }}"
+       aria-label="Inicio">
+      <img
+        src="{{ url_for('static', filename='img/logo.svg') }}"
+        alt="Apuntes UCM"
+        class="logo-inicio">
+    </a>
 
-      <!-- Logo de inicio -->
-      <li class="nav-item">
-        <a class="nav-link logo-link"
-           href="{{ url_for('inicio') }}"
-           aria-label="Inicio">
-          <img
-            src="{{ url_for('static', filename='img/logo.svg') }}"
-            alt="Apuntes UCM"
-            class="logo-inicio">
-        </a>
-      </li>
+    <!-- Botón subir apunte -->
+    {% if session.usuario %}
+    <a class="btn-subir"
+       href="{{ url_for('subir') }}"
+       title="Subir apunte"
+       aria-label="Subir apunte">
+      <i class="fas fa-plus"></i>
+    </a>
+    {% endif %}
 
-      <!-- Botón subir apunte -->
-      {% if session.usuario %}
-      <li class="nav-item">
-        <a class="btn-subir"
-           href="{{ url_for('subir') }}"
-           title="Subir apunte"
-           aria-label="Subir apunte">
-          <i class="fas fa-plus"></i>
-        </a>
-      </li>
-      {% endif %}
+    <!-- Botón de menú para pantallas angostas -->
+    <button class="navbar-toggler ml-auto" type="button"
+            data-toggle="collapse" data-target="#menuPrincipal"
+            aria-controls="menuPrincipal" aria-expanded="false"
+            aria-label="Abrir menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-      <!-- Apuntes -->
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('apuntes') }}">
-          <i class="fas fa-book-open"></i>
-          Apuntes
-        </a>
-      </li>
+    <div class="collapse navbar-collapse" id="menuPrincipal">
 
-      <!-- Administración -->
-      {% if session.usuario and session.usuario.rol == 'ADMIN' %}
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('admin') }}">
-          <i class="fas fa-gear"></i>
-          Administración
-        </a>
-      </li>
-      {% endif %}
+      <ul class="navbar-nav">
 
-    </ul>
+        <!-- Apuntes -->
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('apuntes') }}">
+            <i class="fas fa-book-open"></i>
+            Apuntes
+          </a>
+        </li>
 
-    <!-- Navegación del usuario -->
-    <ul class="navbar-nav ml-auto align-items-center">
+        <!-- Administración -->
+        {% if session.usuario and session.usuario.rol == 'ADMIN' %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('admin') }}">
+            <i class="fas fa-gear"></i>
+            Administración
+          </a>
+        </li>
+        {% endif %}
 
-      {% if session.usuario %}
+      </ul>
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('mi_perfil') }}">
-          <i class="fas fa-user"></i>
-          {{ session.usuario.nombre }}
-        </a>
-      </li>
+      <!-- Navegación del usuario -->
+      <ul class="navbar-nav ml-auto">
 
-      <li class="nav-item">
-        <form method="POST" action="{{ url_for('logout') }}" class="m-0">
-          <button type="submit" class="btn btn-link nav-link">
-            Salir
-          </button>
-        </form>
-      </li>
+        {% if session.usuario %}
 
-      {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('mi_perfil') }}">
+            <i class="fas fa-user"></i>
+            {{ session.usuario.nombre }}
+          </a>
+        </li>
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('login') }}">
-          Ingresar
-        </a>
-      </li>
+        <li class="nav-item">
+          <form method="POST" action="{{ url_for('logout') }}" class="m-0">
+            <button type="submit" class="btn btn-link nav-link">
+              Salir
+            </button>
+          </form>
+        </li>
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('registro') }}">
-          Registrarse
-        </a>
-      </li>
+        {% else %}
 
-      {% endif %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('login') }}">
+            Ingresar
+          </a>
+        </li>
 
-    </ul>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('registro') }}">
+            Registrarse
+          </a>
+        </li>
+
+        {% endif %}
+
+      </ul>
+
+    </div>
 
   </nav>
 
