@@ -229,3 +229,15 @@ procedimientos almacenados, utilizando `db.llamar`.
 
 Las contraseñas se almacenan mediante hash utilizando Werkzeug,
 y las credenciales de Oracle se leen desde variables de entorno.
+
+## Scripts SQL
+
+El script oficial para crear toda la base de datos es
+`sql/wuolah_ucm_completo.sql`: reúne tablas, secuencias, funciones,
+procedimientos, triggers y datos de prueba en un solo archivo, y se
+puede ejecutar varias veces sin errores.
+
+Los archivos `sql/00_reset.sql` a `sql/09_datos_prueba.sql` son los mismos
+objetos separados por tipo, solo para facilitar la lectura del código.
+No ejecutarlos por separado: los datos de prueba sueltos no incluyen
+`UNISTR()` y las tildes pueden verse mal.
