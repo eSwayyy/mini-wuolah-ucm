@@ -105,3 +105,19 @@ MANTENEDORES = {
 # Campos que se envian como numero al procedimiento (el resto va como texto)
 CAMPOS_NUMERICOS = {"id_facultad", "id_carrera", "id_asignatura", "id_profesor", "id_usuario", "id_tipo",
                     "id_apunte", "semestre", "visible"}
+
+# Largo maximo de cada campo de texto (el mismo de la columna en Oracle), para validar en el formulario
+LARGOS = {
+    "facultades": {"nombre": 120},
+    "carreras": {"codigo": 20, "nombre": 150},
+    "profesores": {"nombre": 80, "apellido": 80},
+    "asignaturas": {"codigo": 20, "nombre": 150},
+    "tipos": {"nombre": 60},
+    "etiquetas": {"nombre": 40},
+    "usuarios": {"nombre": 100, "correo": 150},
+    "apuntes": {"titulo": 200, "descripcion": 1000, "ruta_archivo": 500},
+    "comentarios": {"contenido": 1000},
+}
+
+# Campos que pueden quedar vacios (el resto es obligatorio)
+OPCIONALES = {"apuntes": {"descripcion", "id_profesor"}, "usuarios": {"id_carrera"}}

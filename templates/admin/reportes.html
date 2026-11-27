@@ -34,9 +34,40 @@
     <div class="col-lg-7 mb-3"><div class="card shadow-sm"><div class="card-body"><canvas id="graficoTop" height="150"></canvas></div></div></div>
     <div class="col-lg-5 mb-3"><div class="card shadow-sm"><div class="card-body"><canvas id="graficoCarreras" height="200"></canvas></div></div></div>
   </div>
+  <div class="row mb-4">
+    <div class="col-lg-7 mb-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <h3 class="h6">Ranking de apuntes</h3>
+        <table class="table table-sm mb-0">
+          <thead><tr><th>#</th><th>Apunte</th><th>Asignatura</th><th class="text-right">Descargas</th></tr></thead>
+          {% for f in top %}
+          <tr><td>{{ loop.index }}</td><td>{{ f.titulo }}</td><td>{{ f.asignatura }}</td><td class="text-right">{{ f.total_descargas }}</td></tr>
+          {% else %}<tr><td colspan="4" class="text-muted">Sin descargas en {{ anio }}.</td></tr>{% endfor %}
+        </table>
+      </div></div>
+    </div>
+    <div class="col-lg-5 mb-3">
+      <div class="card shadow-sm"><div class="card-body">
+        <h3 class="h6">Descargas por carrera</h3>
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Carrera</th><th class="text-right">Descargas</th></tr></thead>
+          {% for f in por_carrera %}<tr><td>{{ f.carrera }}</td><td class="text-right">{{ f.total_descargas }}</td></tr>
+          {% else %}<tr><td colspan="2" class="text-muted">Sin descargas en {{ anio }}.</td></tr>{% endfor %}
+        </table>
+      </div></div>
+    </div>
+  </div>
 
   <h2 class="h5">2. Actividad mensual ({{ anio }})</h2>
-  <div class="card shadow-sm mb-4"><div class="card-body"><canvas id="graficoMeses" height="90"></canvas></div></div>
+  <div class="card shadow-sm mb-3"><div class="card-body"><canvas id="graficoMeses" height="90"></canvas></div></div>
+  <div class="card shadow-sm mb-4"><div class="card-body">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Mes</th><th class="text-right">Descargas</th><th class="text-right">Apuntes subidos</th></tr></thead>
+      {% for m in meses %}
+      <tr><td>{{ m }}</td><td class="text-right">{{ serie_descargas[loop.index0] }}</td><td class="text-right">{{ serie_apuntes[loop.index0] }}</td></tr>
+      {% endfor %}
+    </table>
+  </div></div>
 
   <h2 class="h5">3. Cobertura de material por asignatura</h2>
   <div class="row">

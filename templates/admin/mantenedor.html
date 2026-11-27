@@ -70,20 +70,24 @@
         {% endif %}
 
         {% for nombre, etiqueta, tipo, _ in m.campos %}
+        {% set obligatorio = 'required' if nombre not in opcionales else '' %}
         <div class="form-group">
-          <label for="f_{{ nombre }}">{{ etiqueta }}</label>
+          <label for="f_{{ nombre }}">{{ etiqueta }}{% if obligatorio and tipo != 'password' %} *{% endif %}</label>
           {% if tipo == 'select' %}
-            <select id="f_{{ nombre }}" name="{{ nombre }}" class="form-control">
+            <select id="f_{{ nombre }}" name="{{ nombre }}" class="form-control" {{ obligatorio }}>
               {% for valor, texto in selects[nombre] %}<option value="{{ valor }}">{{ texto }}</option>{% endfor %}
             </select>
           {% elif tipo == 'area' %}
-            <textarea id="f_{{ nombre }}" name="{{ nombre }}" class="form-control" rows="3"></textarea>
+            <textarea id="f_{{ nombre }}" name="{{ nombre }}" class="form-control" rows="3"
+                      maxlength="{{ largos[nombre] }}" {{ obligatorio }}></textarea>
           {% elif tipo == 'password' %}
-            <input id="f_{{ nombre }}" name="{{ nombre }}" type="password" class="form-control" autocomplete="new-password">
+            <input id="f_{{ nombre }}" name="{{ nombre }}" type="password" class="form-control"
+                   autocomplete="new-password" minlength="8">
           {% elif tipo == 'numero' %}
-            <input id="f_{{ nombre }}" name="{{ nombre }}" type="number" class="form-control">
+            <input id="f_{{ nombre }}" name="{{ nombre }}" type="number" class="form-control" min="1" {{ obligatorio }}>
           {% else %}
-            <input id="f_{{ nombre }}" name="{{ nombre }}" type="text" class="form-control">
+            <input id="f_{{ nombre }}" name="{{ nombre }}" type="{{ 'email' if nombre == 'correo' else 'text' }}"
+                   class="form-control" maxlength="{{ largos[nombre] }}" {{ obligatorio }}>
           {% endif %}
         </div>
         {% endfor %}
@@ -104,6 +108,8 @@
     document.querySelectorAll('.clave-hidden').forEach(function (h) { h.remove(); });
     document.getElementById('opcionFormulario').value = opcion;
     document.getElementById('tituloFormulario').textContent = opcion === 'I' ? 'Nuevo registro' : 'Editar registro';
+    const clave = document.querySelector('input[type=password]');
+    if (clave) clave.required = (opcion === 'I');   // al editar, vacia = no cambia
     NOMBRES.forEach(function (nombre) {
       const campo = document.getElementById('f_' + nombre);
       if (campo) campo.value = datos ? (datos[nombre] || '') : '';

@@ -18,7 +18,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 load_dotenv()
 
 from db import ErrorBD, SAL_NUM, SAL_TXT, SAL_CUR, llamar, lista  # noqa: E402
-from mantenedores import CAMPOS_NUMERICOS, MANTENEDORES  # noqa: E402
+from mantenedores import CAMPOS_NUMERICOS, LARGOS, MANTENEDORES, OPCIONALES  # noqa: E402
 
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
@@ -369,7 +369,8 @@ def mantenedor(clave):
         fila["_edicion"] = {c: "" if fila.get(c) is None else str(fila[c]) for c in campos_edicion}
     selects = {c[0]: opciones(c[3]) for c in m["campos"] if c[2] == "select"}
     selects.update({c[0]: opciones(c[2]) for c in m.get("claves_select", [])})
-    return render_template("admin/mantenedor.html", clave=clave, m=m, filas=filas, selects=selects)
+    return render_template("admin/mantenedor.html", clave=clave, m=m, filas=filas, selects=selects,
+                           largos=LARGOS.get(clave, {}), opcionales=OPCIONALES.get(clave, set()))
 
 
 @app.route("/admin/moderacion")  # GESTOR 2: moderar apuntes
