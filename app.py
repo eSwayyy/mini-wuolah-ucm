@@ -1,9 +1,3 @@
-"""Wuolah UCM: aplicacion web (Flask + Jinja) sobre Oracle.
-
-Capa de presentacion: esta aplicacion.
-Capa de datos: Oracle (PL/SQL). La aplicacion NO contiene SQL: solo llama
-procedimientos almacenados mediante db.llamar() / db.lista().
-"""
 import os
 import uuid
 from datetime import datetime
@@ -19,18 +13,12 @@ load_dotenv()
 
 from db import ErrorBD, SAL_NUM, SAL_TXT, SAL_CUR, llamar, lista  # noqa: E402
 from mantenedores import CAMPOS_NUMERICOS, LARGOS, MANTENEDORES, OPCIONALES  # noqa: E402
-
 app = Flask(__name__)
 app.secret_key = os.environ["SECRET_KEY"]
-# Nombre propio: otros proyectos Flask en 127.0.0.1 comparten cookies llamados "session".
 app.config["SESSION_COOKIE_NAME"] = "wuolah_sesion"
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # PDF de hasta 20 MB
 UPLOADS = Path(app.root_path) / "uploads"
 
-
-# ---------------------------------------------------------------------
-# Utilidades
-# ---------------------------------------------------------------------
 def entero(valor):
     try:
         return int(valor)
@@ -39,7 +27,6 @@ def entero(valor):
 
 
 def ruta_absoluta(ruta):
-    """Ruta guardada en Oracle -> archivo dentro de uploads/ (o None si no existe)."""
     if not ruta:
         return None
     archivo = (Path(app.root_path) / ruta).resolve()
@@ -49,7 +36,6 @@ def ruta_absoluta(ruta):
 
 
 def tarjeta(a, id_carrera=None):
-    """Fila de un procedimiento de apuntes -> nombres que usan las plantillas."""
     return {
         "id_apunte": a["id_apunte"], "titulo": a["titulo"], "descripcion": a["descripcion"] or "",
         "tipo": a["tipo"], "estado": a["estado"], "fecha_subida": a["fecha_subida"].strftime("%d/%m/%Y"),
@@ -64,7 +50,6 @@ def tarjeta(a, id_carrera=None):
 
 
 def apunte_visible(apunte_id):
-    """Apunte activo, o cualquiera si lo pide su autor o un administrador."""
     filas = lista("WU_APUNTE_OBTENER_P", apunte_id)
     if not filas:
         abort(404)
@@ -77,7 +62,6 @@ def apunte_visible(apunte_id):
 
 
 def destino_seguro(ruta):
-    """Solo se redirige a rutas internas (evita redirecciones a otros sitios)."""
     if ruta and ruta.startswith("/") and not ruta.startswith("//"):
         return ruta
     return url_for("inicio")
@@ -103,6 +87,7 @@ def admin_requerido(f):
     return interna
 
 
+
 @app.errorhandler(ErrorBD)
 def error_procedimiento(error):
     flash(error.mensaje, "danger")
@@ -110,10 +95,6 @@ def error_procedimiento(error):
         return redirect(request.referrer or url_for("inicio"))
     return error.mensaje, 500
 
-
-# ---------------------------------------------------------------------
-# Sesion
-# ---------------------------------------------------------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -161,10 +142,6 @@ def logout():
     session.clear()
     return redirect(url_for("inicio"))
 
-
-# ---------------------------------------------------------------------
-# Paginas publicas
-# ---------------------------------------------------------------------
 @app.route("/")
 @app.route("/inicio")
 def inicio():
@@ -235,10 +212,6 @@ def perfil_usuario(usuario_id):
 def mi_perfil():
     return redirect(url_for("perfil_usuario", usuario_id=session["usuario"]["id"]))
 
-
-# ---------------------------------------------------------------------
-# Gestores del estudiante
-# ---------------------------------------------------------------------
 @app.route("/subir", methods=["GET", "POST"])  # GESTOR 1: publicar apunte
 @login_requerido
 def subir():
@@ -306,9 +279,6 @@ def comentar(apunte_id):
     return redirect(url_for("detalle_apunte", apunte_id=apunte_id))
 
 
-# ---------------------------------------------------------------------
-# Administrador
-# ---------------------------------------------------------------------
 @app.route("/admin")
 @admin_requerido
 def admin():
@@ -328,7 +298,6 @@ def convertir(nombre, valor):
 
 
 def opciones(origen):
-    """Opciones de un campo select: lista fija u otro mantenedor."""
     if isinstance(origen, list):
         return origen
     clave, valor, texto = origen
